@@ -1,0 +1,39 @@
+services:
+  kali:
+    build: ./labs/kali
+    container_name: verilab-kali
+    restart: unless-stopped
+    networks: [pentest-net]
+    entrypoint: ["tail", "-f", "/dev/null"]
+
+  nuclei:
+    build: ./labs/nuclei
+    container_name: verilab-nuclei
+    restart: unless-stopped
+    networks: [pentest-net]
+    entrypoint: ["tail", "-f", "/dev/null"]
+
+  nmap:
+    build: ./labs/nmap
+    container_name: verilab-nmap
+    restart: unless-stopped
+    networks: [pentest-net]
+    entrypoint: ["tail", "-f", "/dev/null"]
+
+  semgrep:
+    build: ./labs/semgrep
+    container_name: verilab-semgrep
+    restart: unless-stopped
+    networks: [pentest-net]
+    entrypoint: ["tail", "-f", "/dev/null"]
+
+  trufflehog:
+    build: ./labs/trufflehog
+    container_name: verilab-trufflehog
+    restart: unless-stopped
+    networks: [pentest-net]
+    entrypoint: ["tail", "-f", "/dev/null"]
+
+networks:
+  pentest-net:
+    driver: bridge
