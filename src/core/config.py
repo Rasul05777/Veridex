@@ -1,3 +1,4 @@
+from pydantic import Field, AliasChoices
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import cached_property
 
@@ -5,7 +6,10 @@ from functools import cached_property
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="VERILAB_", env_file=".env", extra="ignore")
 
-    anthropic_api_key: str = ""
+    anthropic_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("ANTHROPIC_API_KEY", "VERILAB_ANTHROPIC_API_KEY"),
+    )
     llm_model: str = "claude-sonnet-4-6"
     allowed_targets: str = ""
     db_path: str = "data/verilab.db"
