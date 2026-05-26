@@ -30,4 +30,4 @@ def test_verify_handles_malformed_json(mocker):
         return_value={"role": "assistant", "content": "not json"},
     )
     result = verify(findings=[], goal="x")
-    assert result["verified"] is True  # safe default: don't loop forever
+    assert result["verified"] is False  # safe default: keep going rather than terminate prematurely

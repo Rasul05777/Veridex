@@ -1,4 +1,5 @@
 import json
+import re
 from ..core.llm import chat
 
 _SYSTEM = (
@@ -17,7 +18,14 @@ def plan(goal: str, target: str) -> list[str]:
         },
     ]
     response = chat(messages)
+    content = response.get("content", "[]")
+    # Strip markdown fences if present
+    content = re.sub(r"^```(?:json)?\s*", "", content.strip(), flags=re.MULTILINE)
+    content = re.sub(r"```\s*$", "", content.strip(), flags=re.MULTILINE)
     try:
-        return json.loads(response.get("content", "[]"))
+        result = json.loads(content.strip())
+        if isinstance(result, list):
+            return result
+        return []
     except (json.JSONDecodeError, ValueError):
         return []

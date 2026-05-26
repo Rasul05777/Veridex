@@ -26,4 +26,4 @@ def verify(findings: list[dict], goal: str) -> dict:
     try:
         return json.loads(response.get("content", "{}"))
     except (json.JSONDecodeError, ValueError):
-        return {"verified": True, "gaps": ""}
+        return {"verified": False, "gaps": "Verifier returned non-JSON response, retrying"}

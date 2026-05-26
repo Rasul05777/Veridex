@@ -39,9 +39,6 @@ def _tool_call_node(state: AgentState) -> dict:
 
         try:
             _gate.check(name)
-        except Exception as e:
-            output = str(e)
-        else:
             if name == "execute_command":
                 output = gateway.execute(
                     args.get("command", ""),
@@ -55,6 +52,8 @@ def _tool_call_node(state: AgentState) -> dict:
                 output = "Finding recorded."
             else:
                 output = f"Unknown tool: {name}"
+        except Exception as e:
+            output = f"Tool execution error: {e}"
 
         tool_results.append({
             "role": "tool",
@@ -67,7 +66,7 @@ def _tool_call_node(state: AgentState) -> dict:
 
 def _verify_node(state: AgentState) -> dict:
     result = verifier.verify(state["findings"], state["goal"])
-    return {"verified": result.get("verified", True)}
+    return {"verified": result.get("verified", False)}
 
 
 def build_graph():

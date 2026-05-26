@@ -1,3 +1,4 @@
+import os
 import time
 import aiosqlite
 
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS context (
 
 
 async def init_db(db_path: str) -> None:
+    os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
     async with aiosqlite.connect(db_path) as db:
         await db.execute(_CREATE_TASKS)
         await db.execute(_CREATE_CONTEXT)
