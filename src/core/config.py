@@ -10,7 +10,11 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("ANTHROPIC_API_KEY", "VERILAB_ANTHROPIC_API_KEY"),
     )
-    llm_model: str = "claude-sonnet-4-6"
+    openrouter_api_key: str = Field(
+        default="",
+        validation_alias=("OPENROUTER_API_KEY")
+    )
+    llm_model: str = "openrouter/qwen/qwen3.7-max"
     allowed_targets: str = ""
     db_path: str = "data/verilab.db"
     max_iterations: int = 10

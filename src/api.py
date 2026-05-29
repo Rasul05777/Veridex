@@ -62,14 +62,22 @@ async def _run_agent(task_id: int, goal: str, target: str) -> None:
         for node_name, output in event.items():
             msgs: list[dict] = output.get("messages", [])
             for msg in msgs:
-                role = msg.get("role", "unknown")
-                content = msg.get("content") or json.dumps(msg.get("tool_calls", []))
-                type_ = _role_to_type(role, msg)
+                for entry in _context_entries_from_message(msg):
+                    await save_context(
+                        settings.db_path,
+                        task_id=task_id,
+                        type_=entry["type"],
+                        message=entry["message"][:4096],
+                        agent=node_name,
+                    )
+
+            findings: list[dict] = output.get("findings", [])
+            for finding in findings:
                 await save_context(
                     settings.db_path,
                     task_id=task_id,
-                    type_=type_,
-                    message=str(content)[:4096],
+                    type_="finding",
+                    message=json.dumps(finding, ensure_ascii=False)[:4096],
                     agent=node_name,
                 )
 
@@ -77,12 +85,39 @@ async def _run_agent(task_id: int, goal: str, target: str) -> None:
     log.info("task done", task_id=task_id)
 
 
-def _role_to_type(role: str, msg: dict) -> str:
+def _context_entries_from_message(msg: dict) -> list[dict[str, str]]:
+    role = msg.get("role", "unknown")
     if role == "tool":
-        return "observation"
-    if msg.get("tool_calls"):
-        return "action"
-    return "thought"
+        return [{"type": "observation", "message": str(msg.get("content", ""))}]
+
+    entries: list[dict[str, str]] = []
+    content = msg.get("content")
+    if content:
+        entries.append({"type": "thought", "message": str(content)})
+
+    tool_calls = msg.get("tool_calls") or []
+    for tc in tool_calls:
+        fn = tc.get("function", {})
+        entries.append({
+            "type": "action",
+            "message": json.dumps({
+                "tool_call_id": tc.get("id"),
+                "tool": fn.get("name"),
+                "arguments": _decode_tool_arguments(fn.get("arguments", "{}")),
+            }, ensure_ascii=False),
+        })
+
+    if not entries:
+        entries.append({"type": "thought", "message": ""})
+    return entries
+
+
+def _decode_tool_arguments(raw_args: str) -> dict:
+    try:
+        args = json.loads(raw_args)
+    except (TypeError, json.JSONDecodeError):
+        return {"raw": raw_args}
+    return args if isinstance(args, dict) else {"value": args}
 
 
 class TaskRequest(BaseModel):

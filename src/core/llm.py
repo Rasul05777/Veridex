@@ -7,7 +7,7 @@ litellm.drop_params = True
 
 def chat(messages: list[dict], tools: list[dict] | None = None) -> dict:
     """Call LLM and return the assistant message as a plain dict."""
-    os.environ.setdefault("ANTHROPIC_API_KEY", settings.anthropic_api_key)
+    os.environ.setdefault("OPENROUTER_API_KEY", settings.openrouter_api_key)
 
     kwargs: dict = {
         "model": settings.llm_model,

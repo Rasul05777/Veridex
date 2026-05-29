@@ -53,3 +53,27 @@ async def test_get_task_returns_status(client, mocker):
     get = await client.get(f"/task/{task_id}")
     assert get.status_code == 200
     assert get.json()["status"] in ("queued", "running", "done", "error")
+
+
+def test_context_entries_from_message_records_tool_calls():
+    from src.api import _context_entries_from_message
+
+    entries = _context_entries_from_message({
+        "role": "assistant",
+        "content": "I will inspect headers.",
+        "tool_calls": [
+            {
+                "id": "call_1",
+                "type": "function",
+                "function": {
+                    "name": "execute_command",
+                    "arguments": '{"command":"curl -I https://example.com","backend":"kali"}',
+                },
+            }
+        ],
+    })
+
+    assert entries[0] == {"type": "thought", "message": "I will inspect headers."}
+    assert entries[1]["type"] == "action"
+    assert '"tool": "execute_command"' in entries[1]["message"]
+    assert '"backend": "kali"' in entries[1]["message"]
